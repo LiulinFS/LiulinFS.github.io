@@ -33,4 +33,4 @@ repo.heads.main.checkout()
 print("推送到 GitHub...")
 repo.remote("origin").push(refspec="main:main")
 
-print("🎉 代码已成功上传到 GitHub！")
+print("代码已成功上传到 GitHub！")
