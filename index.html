@@ -1,276 +1,58 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>个人博客</title>
-<style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-body {
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
-    background: #f4f4f9;
-    color: #333;
-}
-header {
-    background: #333;
-    color: #fff;
-    padding: 10px 20px;
-    text-align: center;
-    font-size: 1.5em;
-}
-nav {
-    margin: 20px auto;
-    text-align: center;
-}
-nav button {
-    margin: 5px;
-    padding: 10px 20px;
-    border: none;
-    background: #555;
-    color: #fff;
-    cursor: pointer;
-    border-radius: 5px;
-    font-size: 1em;
-}
-nav button:hover {
-    background: #333;
-}
-.content {
-    padding: 20px;
-    max-width: 800px;
-    margin: 20px auto;
-    background: #fff;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-input[type="text"] {
-    width: 100%;
-    font-size: 1.3em;
-    height: 40px;
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 5px 10px;
-    box-sizing: border-box;
-}
-textarea {
-    width: 100%;
-    font-size: 1.2em;
-    color:#000;
-    font-family:"Georgia",serif;
-    height: 150px;
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 10px;
-    resize: vertical;
-    overflow-y: auto;
-}
-textarea:focus, input[type="text"]:focus {
-    outline: none;
-    border-color: #555;
-}
-button[type="submit"] {
-    padding: 10px 20px;
-    background: #555;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    font-size: 1em;
-    cursor: pointer;
-}
-button[type="submit"]:hover {
-    background: #333;
-}
-.blog-post {
-    margin-bottom: 20px;
-    padding: 10px;
-    border-radius: 5px;
-    background: #f9f9f9;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-    position: relative;
-}
-.blog-post h3 {
-    font-size: 1.2em;
-    color: #333;
-    margin-bottom: 10px;
-}
-.blog-post p {
-    font-size: 1.1em;
-    color: #000;
-    line-height: 1.5;
-    margin-bottom: 5px;
-}
-.button-group {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 10px;
-}
-.button-group button {
-    padding: 5px 10px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.9em;
-}
-.button-group button.edit {
-    background: #3498db;
-    color: white;
-}
-.button-group button.edit:hover {
-    background: #2980b9;
-}
-.button-group button.delete {
-    background: #e74c3c;
-    color: white;
-}
-.button-group button.delete:hover {
-    background: #c0392b;
-}
-footer {
-    text-align: center;
-    padding: 10px;
-    background: #333;
-    color: #fff;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    font-size: 0.9em;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的博客</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; }
+        h1 { text-align: center; }
+        .blog-post { border: 1px solid #ddd; padding: 10px; margin-bottom: 20px; border-radius: 5px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); }
+        .blog-post h2 { margin: 0; font-size: 1.5em; }
+        .blog-post p { color: #555; }
+    </style>
 </head>
 <body>
-<header>
-    <h1>晚安</h1>
-</header>
-<nav>
-    <button onclick="showSection('home')">首页</button>
-    <button onclick="showSection('blog')">个人博客</button>
-</nav>
+    <h1>我的博客</h1>
+    <p>所有文章来自 GitHub Issues</p >
+    <div id="blog-list">正在加载文章...</div>
 
-<!-- 首页内容 -->
-<div id="home" class="content">
-    <h2>我的博客文章</h2>
-    <div id="blog-list">
-        <!-- 动态加载博客文章 -->
-    </div>
-</div>
+    <script>
+        async function loadBlogs() {
+            const username = "LiulinFS";  // 你的 GitHub 用户名
+            const repo = "LiulinFS.github.io";  // 你的 GitHub 仓库名
+            const apiUrl = `https://api.github.com/repos/${username}/${repo}/issues?state=open`;
 
-<!-- 博客内容 -->
-<div id="blog" class="content" style="display: none;">
-    <h2>发布或编辑文章</h2>
-    <form id="blog-form">
-        <label for="title">标题：</label>
-        <input type="text" id="title" name="title" placeholder="请输入文章标题" required>
-        <label for="content">内容：</label>
-        <textarea id="content" name="content" placeholder="请输入文章内容" required></textarea>
-        <button type="submit">保存</button>
-    </form>
-</div>
+            try {
+                let response = await fetch(apiUrl);
+                let issues = await response.json();
 
-<footer>
-    <p>2024 某某的个人博客 | 保留所有权利</p >
-</footer>
+                let blogList = document.getElementById("blog-list");
+                blogList.innerHTML = "";  // 清空旧内容
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const blogList = document.getElementById('blog-list');
-    const blogForm = document.getElementById('blog-form');
-    const titleInput = document.getElementById('title');
-    const contentInput = document.getElementById('content');
+                if (issues.length === 0) {
+                    blogList.innerHTML = "<p>暂无文章</p >";
+                    return;
+                }
 
-    const loadBlogs = () => {
-        const blogs = JSON.parse(localStorage.getItem('blogs')) || [];
-        blogList.innerHTML = '';
-        blogs.forEach((blog, index) => {
-            const blogPost = document.createElement('div');
-            blogPost.classList.add('blog-post');
-            blogPost.innerHTML = `
-                <h3>${blog.title}</h3>
-                <p>${blog.content}</p >
-                <p style="font-size: 0.9em; color: #555;">发布时间: ${blog.timestamp || '未知'}</p >
-                <div class="button-group">
-                    <button class="edit" onclick="editBlog(${index})">编辑</button>
-                    <button class="delete" onclick="deleteBlog(${index})">删除</button>
-                </div>
-            `;
-            blogList.appendChild(blogPost);
-        });
-    };
-
-    const saveBlog = (title, content) => {
-        const blogs = JSON.parse(localStorage.getItem('blogs')) || [];
-        const timestamp = new Date().toLocaleString();
-        blogs.push({ title, content, timestamp });
-        localStorage.setItem('blogs', JSON.stringify(blogs));
-        loadBlogs();
-    };
-
-    window.deleteBlog = (index) => {
-        const blogs = JSON.parse(localStorage.getItem('blogs')) || [];
-        blogs.splice(index, 1);
-        localStorage.setItem('blogs', JSON.stringify(blogs));
-        loadBlogs();
-    };
-
-    window.editBlog = (index) => {
-        const blogs = JSON.parse(localStorage.getItem('blogs')) || [];
-        const blog = blogs[index];
-        if (!blog) return;
-
-        // 填充表单
-        titleInput.value = blog.title;
-        contentInput.value = blog.content;
-
-        // 切换到编辑页面
-        showSection('blog');
-
-        // 更新保存按钮为“更新”功能
-        const saveButton = document.querySelector('button[type="submit"]');
-        saveButton.textContent = '更新';
-        saveButton.onclick = (e) => {
-            e.preventDefault();
-            const updatedTitle = titleInput.value.trim();
-            const updatedContent = contentInput.value.trim();
-            if (updatedTitle && updatedContent) {
-                blogs[index] = { ...blog, title: updatedTitle, content: updatedContent };
-                localStorage.setItem('blogs', JSON.stringify(blogs));
-                loadBlogs();
-                saveButton.textContent = '保存';
-                saveButton.onclick = defaultSaveHandler;
-                titleInput.value = '';
-                contentInput.value = '';
-                showSection('home'); // 更新完成后返回首页
+                issues.forEach(issue => {
+                    let post = document.createElement("div");
+                    post.classList.add("blog-post");
+                    post.innerHTML = `
+                        <h2>${issue.title}</h2>
+                        <p>${new Date(issue.created_at).toLocaleDateString()}</p >
+                        <div>${marked.parse(issue.body)}</div>
+                    `;
+                    blogList.appendChild(post);
+                });
+            } catch (error) {
+                console.error("加载文章失败：", error);
+                document.getElementById("blog-list").innerHTML = "<p>加载文章失败，请检查 GitHub API 配置</p >";
             }
-        };
-    };
-
-    const defaultSaveHandler = (e) => {
-        e.preventDefault();
-        const title = titleInput.value.trim();
-        const content = contentInput.value.trim();
-        if (title && content) {
-            saveBlog(title, content);
-            titleInput.value = '';
-            contentInput.value = '';
         }
-    };
 
-    blogForm.addEventListener('submit', defaultSaveHandler);
-    loadBlogs();
-});
-
-const showSection = (id) => {
-    const sections = document.querySelectorAll('.content');
-    sections.forEach(section => section.style.display = 'none');
-    document.getElementById(id).style.display = 'block';
-};
-</script>
+        loadBlogs();
+    </script>
 </body>
 </html>
