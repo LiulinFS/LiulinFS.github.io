@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的心情小站</title>
+    <script src="//code.bdstatic.com/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
+    
+    <style>
+        /* 简单清爽的手机端风格 */
+        body { font-family: -apple-system, sans-serif; background-color: #f7f8fa; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; }
+        
+        h2 { text-align: center; color: #333; margin-bottom: 20px; font-weight: 600; }
+
+        /* 输入框区域 */
+        .input-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        input, textarea { width: 100%; border: 1px solid #ebedf0; background: #f7f8fa; border-radius: 8px; padding: 12px; font-size: 14px; box-sizing: border-box; margin-bottom: 12px; outline: none; transition: all 0.3s; }
+        input:focus, textarea:focus { background: white; border-color: #007aff; }
+        
+        button { width: 100%; background: #007aff; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        button:active { opacity: 0.8; transform: scale(0.98); }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* 留言列表 */
+        #list { list-style: none; padding: 0; }
+        .msg-card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); animation: fadeIn 0.5s; position: relative; }
+        .msg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px; }
+        .user-name { font-weight: bold; color: #333; font-size: 15px; }
+        .time { font-size: 12px; color: #999; }
+        .content { font-size: 15px; line-height: 1.6; color: #555; white-space: pre-wrap; }
+        
+        /* 删除按钮 */
+        .del-btn { color: #ff4d4f; font-size: 12px; cursor: pointer; margin-left: 10px; padding: 2px 6px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .loading { text-align: center; color: #999; font-size: 13px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🍃 树洞留言板</h2>
+    
+    <div class="input-card">
+        <input type="text" id="name" placeholder="你的昵称 (比如: 匿名)">
+        <textarea id="content" rows="3" placeholder="此刻在想什么？写下来吧..."></textarea>
+        <button id="submitBtn" onclick="sendMsg()">发布留言</button>
+    </div>
+
+    <div id="list">
+        </div>
+    <div id="status" class="loading">正在连接云端...</div>
+</div>
+
+<script>
+    // ==========================================
+    // 🔴 关键步骤：请替换下面双引号里的内容
+    // ==========================================
+    const APP_ID = "43gX061n6bbqH0aI5V2XhMUM-MdYXbMMI"; 
+    const APP_KEY = "UV6j2L5vq8iUi9u0J4kfbeoN";
+    const SERVER_URL = "https://your-api.com"; // 如果是LeanCloud国际版可不填，国内版需填自定义域名
+    
+    // --- 下面是逻辑代码，不需要改动 ---
+
+    // 1. 初始化 LeanCloud
+    if (APP_ID === "你的AppID") {
+        document.getElementById('status').innerText = "⚠️ 请先在代码中填入 AppID 和 AppKey";
+        alert("别忘了填入 LeanCloud 的 ID 和 Key 哦！否则无法存储数据。");
+    } else {
+        // 尝试初始化 (兼容处理)
+        try {
+           if(SERVER_URL && SERVER_URL !== "https://your-api.com") {
+               AV.init({ appId: APP_ID, appKey: APP_KEY, serverURL: SERVER_URL });
+           } else {
+               AV.init({ appId: APP_ID, appKey: APP_KEY });
+           }
+           document.getElementById('status').innerText = "";
+           loadMsg(); // 加载留言
+        } catch(e) {
+            console.error(e);
+            document.getElementById('status').innerText = "连接配置有误，请检查控制台";
+        }
+    }
+
+    // 2. 发送留言
+    async function sendMsg() {
+        const nameInput = document.getElementById('name');
+        const contentInput = document.getElementById('content');
+        const btn = document.getElementById('submitBtn');
+
+        const name = nameInput.value.trim();
+        const content = contentInput.value.trim();
+
+        if (!name || !content) {
+            alert("昵称和内容都要写哦！");
+            return;
+        }
+
+        // 按钮变灰，防止重复点击
+        btn.disabled = true;
+        btn.innerText = "发送中...";
+
+        try {
+            // 创建一条新数据
+            const Message = AV.Object.extend('Message');
+            const msg = new Message();
+            msg.set('name', name);
+            msg.set('content', content);
+            
+            await msg.save(); // 保存到云端
+
+            // 成功后清空输入框并刷新
+            contentInput.value = '';
+            loadMsg(); 
+        } catch (error) {
+            alert("发送失败，请检查网络或配置");
+            console.error(error);
+        }
+        
+        btn.disabled = false;
+        btn.innerText = "发布留言";
+    }
+
+    // 3. 拉取留言列表
+    async function loadMsg() {
+        const query = new AV.Query('Message');
+        query.descending('createdAt'); // 按时间倒序（最新的在上面）
+        query.limit(50); // 最多显示50条
+
+        try {
+            const results = await query.find();
+            const list = document.getElementById('list');
+            list.innerHTML = ''; // 清空现有列表
+
+            if (results.length === 0) {
+                document.getElementById('status').innerText = "还没有留言，来抢沙发吧~";
+            } else {
+                document.getElementById('status').innerText = "";
+            }
+
+            results.forEach(msg => {
+                const data = msg.attributes;
+                const time = msg.createdAt.toLocaleString(); // 自动转换时间格式
+                
+                const div = document.createElement('div');
+                div.className = 'msg-card';
+                div.innerHTML = `
+                    <div class="msg-header">
+                        <div>
+                            <span class="user-name">${escapeHtml(data.name)}</span>
+                            <span class="time">${time}</span>
+                        </div>
+                        <span class="del-btn" onclick="delMsg('${msg.id}')">删除</span>
+                    </div>
+                    <div class="content">${escapeHtml(data.content)}</div>
+                `;
+                list.appendChild(div);
+            });
+        } catch (error) {
+            console.error(error);
+            document.getElementById('status').innerText = "加载失败";
+        }
+    }
+
+    // 4. 删除留言
+    async function delMsg(id) {
+        if (!confirm("确定要删除这条吗？")) return;
+        
+        const msg = AV.Object.createWithoutData('Message', id);
+        try {
+            await msg.destroy();
+            loadMsg(); // 刷新
+        } catch (error) {
+            alert("删除失败");
+        }
+    }
+
+    // 安全过滤（防止XSS攻击）
+    function escapeHtml(text) {
+        if (!text) return text;
+        return text.replace(/&/g, "&amp;")
+                   .replace(/</g, "&lt;")
+                   .replace(/>/g, "&gt;")
+                   .replace(/"/g, "&quot;")
+                   .replace(/'/g, "&#039;");
+    }
+</script>
+</body>
+</html>
