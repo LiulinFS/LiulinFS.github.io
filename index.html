@@ -3,9 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <title>林间的邱天</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -42,53 +39,40 @@
         .forest-text { font-size: 1.4rem; color: var(--forest-dark); font-weight: bold; margin-bottom: 8px; }
         .autumn-text { font-size: 1.8rem; color: var(--autumn-gold); font-weight: bold; }
 
-        /* 顶部发布区 */
         .input-section { width: 100%; max-width: 500px; background: var(--card-bg); padding: 15px 20px; border-radius: 20px; margin-bottom: 25px; border: 1px solid var(--card-border); z-index: 1; backdrop-filter: blur(15px); box-sizing: border-box; }
-        textarea { width: 100%; background: transparent; border: none; color: white; font-size: 1.15rem; resize: none; outline: none; min-height: 80px; line-height: 1.6; box-sizing: border-box; scrollbar-width: none; overflow: hidden; }
+        textarea { width: 100%; background: transparent; border: none; color: white; font-size: 1.15rem; resize: none; outline: none; min-height: 80px; line-height: 1.6; box-sizing: border-box; scrollbar-width: none; }
         textarea::-webkit-scrollbar { display: none; }
 
-        .author-input { background: rgba(255,255,255,0.08); border: 1px solid #444; color: #eee; border-radius: 12px; padding: 6px 12px; width: 65px; font-size: 0.9rem; outline: none; }
-        .control-right { display: flex; align-items: center; gap: 12px; }
-        .photo-btn { font-size: 1.35rem; cursor: pointer; opacity: 0.9; display: inline-flex; align-items: center; margin-top: -6px; }
-        button#publishBtn { background: var(--autumn-gold); border: none; padding: 10px 22px; border-radius: 25px; cursor: pointer; font-weight: bold; color: #1c2b23; transition: 0.3s; }
+        /* 🔴 优化了发布区的名字框宽度，避免占太多位置 */
+        .author-input { background: rgba(255,255,255,0.08); border: 1px solid #444; color: #eee; border-radius: 12px; padding: 6px 10px; width: 50px; font-size: 0.9rem; outline: none; }
+        
+        .photo-btn { font-size: 1.35rem; cursor: pointer; opacity: 0.9; margin: 0; }
+        button#publishBtn { background: var(--autumn-gold); border: none; padding: 8px 16px; border-radius: 25px; cursor: pointer; font-weight: bold; color: #1c2b23; transition: 0.3s; }
 
-        /* 🟢 日志卡片整体 */
         #diary-list { width: 100%; max-width: 500px; z-index: 1; padding-bottom: 50px; box-sizing: border-box; }
         .diary-item { background: var(--card-bg); padding: 12px 18px !important; border-radius: 15px; margin-bottom: 15px; border: 1px solid var(--card-border); border-left: 5px solid var(--autumn-gold) !important; backdrop-filter: blur(5px); position: relative; width: 100%; box-sizing: border-box; text-align: left; }
-        
-        /* 🟢 核心修复1：坚如磐石的头部布局，三个按钮绝对居右 */
-        .diary-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; width: 100%; }
-        .diary-header-left { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: #8da399; flex-wrap: wrap; flex: 1; }
-        .actions { display: flex; gap: 12px; align-items: center; flex-shrink: 0; margin-left: 10px; }
-        .action-btn { background: none; border: none; color: var(--forest-text); cursor: pointer; opacity: 0.6; font-size: 1.05rem; padding: 0; }
-        
+        .diary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .diary-text { text-align: left !important; line-height: 1.6; white-space: pre-wrap; font-size: 1rem; word-break: break-word; color: white; margin: 0; padding: 0; }
         .diary-image { width: 100%; max-width: 350px; border-radius: 10px; margin-top: 12px; cursor: zoom-in; display: block; border: 1px solid rgba(255,255,255,0.1); }
 
-        /* 🟢 核心修复2：彻底干掉滑块和多余虚线 */
-        .inline-edit-author { width: 55px; background: transparent !important; border: none !important; color: var(--autumn-gold); font-weight: bold; font-size: 0.75rem; outline: none !important; margin-right: 8px; padding: 0; box-shadow: none !important; }
-        .inline-edit-area { width: 100%; background: transparent !important; border: none !important; color: white; font-size: 1rem; line-height: 1.6; outline: none !important; resize: none; margin-bottom: 5px; box-shadow: none !important; overflow: hidden; scrollbar-width: none; }
-        .inline-edit-area::-webkit-scrollbar { display: none; }
+        .inline-edit-author { width: 55px; background: transparent; border: none; color: var(--autumn-gold); font-weight: bold; font-size: 0.75rem; outline: none; margin-right: 8px; padding: 0; }
+        .inline-edit-area { width: 100%; background: transparent !important; border: none !important; color: white; font-size: 1rem; line-height: 1.6; outline: none; resize: none; margin-bottom: 5px; }
         
-        .reply-edit-box { width: 100%; margin-top: 5px; }
-        .reply-edit-row { display: flex; align-items: center; gap: 4px; }
-        .reply-edit-name { width: 45px; background: transparent !important; border: none !important; color: var(--autumn-gold); font-weight: bold; padding: 0; font-size: 0.9rem; outline: none !important; box-shadow: none !important; }
-        .reply-edit-input { flex: 1; background: transparent !important; border: none !important; color: white; padding: 0; font-size: 0.9rem; outline: none !important; box-shadow: none !important; }
-
-        /* 🟢 核心修复3：留言输入框外层透明，内部单独成框 */
-        .reply-input-box { display: none; margin-top: 12px; gap: 10px; align-items: center; background: transparent; }
-        .reply-name-field { width: 45px; background: transparent; border: none; color: var(--autumn-gold); font-weight: bold; font-size: 0.9rem; outline: none; text-align: left; }
-        .reply-field { flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.05); color: white; font-size: 0.9rem; outline: none; padding: 8px 12px; border-radius: 12px; }
-
-        .edit-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
-        .btn-mini-save { background: var(--autumn-gold); border: none; padding: 4px 15px; border-radius: 15px; font-size: 0.8rem; cursor: pointer; font-weight: bold; color: #1c2b23; }
-        .btn-mini-cancel { background: rgba(255,255,255,0.1); border: none; color: #ccc; padding: 4px 15px; border-radius: 15px; font-size: 0.8rem; cursor: pointer; }
+        .reply-input-box { display: none; margin-top: 12px; gap: 8px; align-items: center; background: rgba(255,255,255,0.06); padding: 8px 12px; border-radius: 15px; }
+        .reply-name-field { width: 55px; background: transparent; border: none; border-right: 1px solid #444; color: var(--autumn-gold); font-weight: bold; font-size: 0.9rem; outline: none; }
+        .reply-field { flex: 1; background: transparent; border: none; color: white; font-size: 0.9rem; outline: none; padding-left: 5px; }
 
         .replies-section { margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); }
         .reply-item { font-size: 0.9rem; color: #8da399; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start; }
         .reply-content { flex: 1; border-left: 2px solid rgba(255,179,71,0.4); padding-left: 10px; line-height: 1.4; }
         .reply-name { color: var(--autumn-gold); font-weight: bold; margin-right: 6px; }
-        .reply-time { font-size: 0.75rem; color: rgba(141, 163, 153, 0.4); margin-left: 8px; }
+
+        .edit-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+        .btn-mini-save { background: var(--autumn-gold); border: none; padding: 4px 15px; border-radius: 15px; font-size: 0.8rem; cursor: pointer; font-weight: bold; color: #1c2b23; }
+        .btn-mini-cancel { background: rgba(255,255,255,0.1); border: none; color: #ccc; padding: 4px 15px; border-radius: 15px; font-size: 0.8rem; cursor: pointer; }
+
+        .actions { display: flex; gap: 12px; align-items: center; }
+        .action-btn { background: none; border: none; color: var(--forest-text); cursor: pointer; opacity: 0.6; font-size: 1.05rem; }
 
         #passcodeOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--forest-bg); z-index: 2000; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: 0.8s; }
         #enterBtn { margin-top: 25px; padding: 10px 40px; background: var(--autumn-gold); border: none; border-radius: 25px; cursor: pointer; font-weight: bold; opacity: 0; transform: translateY(10px); pointer-events: none; transition: 0.3s; }
@@ -103,13 +87,6 @@
     </style>
 </head>
 <body>
-
-    <script>
-        window.onerror = function(message, source, lineno, colno, error) {
-            alert("森林系统被拦截啦！\n原因: " + message + "\n位置: 行 " + lineno);
-            return true;
-        };
-    </script>
 
     <div id="musicToggle" onclick="toggleMusic()">🎵</div>
     <audio id="bgMusic" loop preload="auto" muted><source src="./Love.mp3" type="audio/mpeg"></audio>
@@ -142,18 +119,21 @@
     <div class="input-section">
         <img id="imagePreview" style="width:60px; height:60px; object-fit:cover; border-radius:8px; display:none; margin-bottom:12px; border:1px solid var(--autumn-gold);">
         <textarea id="diaryInput" placeholder="存入此时此刻..." oninput="autoResize(this)"></textarea>
-        <div style="display:flex; justify-content: space-between; align-items: center; margin-top:10px; flex-wrap: wrap; gap:10px;">
-            <div style="display:flex; gap:10px; align-items: center;">
+        
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-top:12px; width:100%;">
+            <div style="display:flex; gap:8px; align-items: center;">
                 <input type="text" id="authorName" class="author-input" placeholder="名字">
-                <div class="mood-btn active" onclick="setMood('gold', this)" style="background: var(--autumn-gold); width:18px; height:18px; border-radius:50%; cursor:pointer;"></div>
-                <div class="mood-btn" onclick="setMood('pink', this)" style="background: var(--love-pink); width:18px; height:18px; border-radius:50%; cursor:pointer;"></div>
-                <div class="mood-btn" onclick="setMood('blue', this)" style="background: var(--tired-blue); width:18px; height:18px; border-radius:50%; cursor:pointer;"></div>
+                <div class="mood-btn active" onclick="setMood('gold', this)" style="background: var(--autumn-gold); width:18px; height:18px; border-radius:50%; cursor:pointer; border:2px solid transparent;"></div>
+                <div class="mood-btn" onclick="setMood('pink', this)" style="background: var(--love-pink); width:18px; height:18px; border-radius:50%; cursor:pointer; border:2px solid transparent;"></div>
+                <div class="mood-btn" onclick="setMood('blue', this)" style="background: var(--tired-blue); width:18px; height:18px; border-radius:50%; cursor:pointer; border:2px solid transparent;"></div>
             </div>
-            <div class="control-right">
+            <div style="display:flex; align-items:center; gap:10px; justify-content: flex-end;">
                 <label for="fileInput" class="photo-btn">📷</label>
                 <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFile(this)">
-                <label style="font-size:0.8rem; color:#8da399; cursor:pointer;"><input type="checkbox" id="capsuleCheck" onchange="document.getElementById('capsuleTime').style.display=this.checked?'block':'none'"> 胶囊</label>
-                <input type="datetime-local" id="capsuleTime" style="display:none; font-size:0.75rem;">
+                <label style="font-size:0.85rem; color:#8da399; cursor:pointer; display:flex; align-items:center; gap:2px;">
+                    <input type="checkbox" id="capsuleCheck" onchange="document.getElementById('capsuleTime').style.display=this.checked?'block':'none'"> 胶囊
+                </label>
+                <input type="datetime-local" id="capsuleTime" style="display:none; font-size:0.75rem; width:20px;">
                 <button id="publishBtn" onclick="publishEntry()">发布日志</button>
             </div>
         </div>
@@ -164,10 +144,6 @@
     <script>
         const SUPABASE_URL = 'https://hhsonthokjwhpcgbpnru.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc29udGhva2p3aHBjZ2JwbnJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTUwNjQsImV4cCI6MjA5MTgzMTA2NH0.bf96o-eDXFSrOeHqTmnNSQZqDIDG7cjq1zciX7PNDQc';
-        
-        if (typeof supabase === 'undefined') {
-            alert("哎呀，数据库模块被手机网络拦截了！请刷新网页重试一下。");
-        }
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
         let currentMood = 'gold';
@@ -183,7 +159,6 @@
         function openImageOverlay(src) { document.getElementById('fullImage').src = src; document.getElementById('imageOverlay').style.display = 'flex'; }
         function closeImageOverlay() { document.getElementById('imageOverlay').style.display = 'none'; }
         function autoResize(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
-        
         function handleFile(input) { 
             const file = input.files[0]; 
             if (file) { 
@@ -216,10 +191,10 @@
                     const isReplyEditing = replyEditingKey === `${item.id}-${index}`;
                     const rTime = r.time ? new Date(r.time).toLocaleString('zh-CN', {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}) : '';
                     if (isReplyEditing) {
-                        return `<div style="margin-top:5px;"><div class="reply-edit-row">
-                                <input type="text" id="re-name-${item.id}-${index}" class="reply-edit-name" value="${r.name}">
-                                <span style="color:var(--autumn-gold); font-weight:bold;">:</span>
-                                <input type="text" id="re-input-${item.id}-${index}" class="reply-edit-input" value="${r.text}">
+                        return `<div style="margin-top:5px;"><div style="display:flex; align-items:center; gap:4px;">
+                                <input type="text" id="re-name-${item.id}-${index}" style="width:45px; background:transparent; border:none; color:#ffb347; font-weight:bold; font-size:0.9rem; outline:none;" value="${r.name}">
+                                <span style="color:#ffb347; font-weight:bold;">:</span>
+                                <input type="text" id="re-input-${item.id}-${index}" style="flex:1; background:transparent; border:none; color:white; font-size:0.9rem; outline:none;" value="${r.text}">
                                 </div><div class="edit-actions"><button class="btn-mini-cancel" onclick="cancelReplyEdit()">取消</button><button class="btn-mini-save" onclick="saveReplyEdit('${item.id}', ${index})">保存</button></div></div>`;
                     }
                     return `<div class="reply-item"><div class="reply-content"><span class="reply-name">${r.name}:</span>${r.text}<span style="font-size:0.75rem; color:rgba(141,163,153,0.4); margin-left:8px;">${rTime}</span></div><div style="display:flex;gap:5px;"><button class="action-btn" style="font-size:0.8rem;opacity:0.4;" onclick="startReplyEdit('${item.id}', ${index})">✎</button><button class="action-btn" style="font-size:0.8rem;opacity:0.4;color:#ff5e5e;" onclick="openConfirmModal('reply', '${item.id}', ${index})">✕</button></div></div>`;
@@ -227,58 +202,37 @@
 
                 const authorHtml = isEditing ? 
                     `<input type="text" id="inline-edit-author-${item.id}" class="inline-edit-author" value="${item.author || '匿名'}">` : 
-                    `<span style="color:#ffb347; font-weight:bold;">${item.author || '匿名'}</span>`;
+                    `<span style="color:#ffb347; font-weight:bold; margin-right:8px;">${item.author || '匿名'}</span>`;
 
                 const contentArea = isEditing ? `
                     <textarea id="inline-editor-${item.id}" class="inline-edit-area" oninput="autoResize(this)">${item.content}</textarea>
                     <div class="edit-actions"><button class="btn-mini-cancel" onclick="cancelInlineEdit()">取消</button><button class="btn-mini-save" onclick="saveInlineEdit('${item.id}')">保存</button></div>
                 ` : `<div class="diary-text" style="${isLocked ? 'color:#555; font-style:italic;' : ''}">${isLocked ? `时光胶囊传送中...${timeTip}` : item.content}</div>`;
 
-                // 🟢 完美的头部布局，确保右侧按钮死钉在右侧
                 return `<div class="diary-item" style="border-left-color: ${moodColors[item.mood] || moodColors.gold} !important;">
                     <div class="diary-header">
-                        <div class="diary-header-left">${authorHtml}<span>${new Date(item.created_at).toLocaleString('zh-CN')}</span></div>
-                        <div class="actions">
-                            <button class="action-btn" onclick="toggleReplyBox('${item.id}')">💬</button>
-                            <button class="action-btn" onclick="startInlineEdit('${item.id}')">✎</button>
-                            <button class="action-btn" onclick="openConfirmModal('log', '${item.id}')">✕</button>
-                        </div>
+                        <div style="font-size:0.75rem; color:#8da399; display:flex; align-items:center;">${authorHtml}${new Date(item.created_at).toLocaleString('zh-CN')}</div>
+                        <div class="actions"><button class="action-btn" onclick="toggleReplyBox('${item.id}')">💬</button><button class="action-btn" onclick="startInlineEdit('${item.id}')">✎</button><button class="action-btn" onclick="openConfirmModal('log', '${item.id}')">✕</button></div>
                     </div>
                     ${contentArea}${imgHtml}${repliesHtml}
                     <div class="reply-input-box" id="reply-box-${item.id}">
                         <input type="text" class="reply-name-field" id="reply-name-${item.id}" placeholder="名字">
                         <input type="text" class="reply-field" id="reply-input-${item.id}" placeholder="想对Ta说...">
-                        <button onclick="submitReply('${item.id}', this)" style="background:var(--autumn-gold); border:none; border-radius:12px; padding:6px 14px; font-size:0.8rem; cursor:pointer; font-weight:bold; color:#1c2b23; flex-shrink:0;">发送</button>
+                        <button onclick="submitReply('${item.id}')" style="background:var(--autumn-gold); border:none; border-radius:12px; padding:2px 10px; font-size:0.75rem; cursor:pointer; font-weight:bold; color:#1c2b23;">发送</button>
                     </div>
                 </div>`;
             }).join('');
-            
-            if(inlineEditingId) { 
-                const el = document.getElementById(`inline-editor-${inlineEditingId}`); 
-                if(el) { autoResize(el); el.focus(); }
-            }
+            if(inlineEditingId) { const el = document.getElementById(`inline-editor-${inlineEditingId}`); if(el) autoResize(el); }
         }
 
-        async function submitReply(id, btn) {
-            try {
-                const name = document.getElementById(`reply-name-${id}`).value.trim() || '匿名';
-                const text = document.getElementById(`reply-input-${id}`).value.trim();
-                if (!text) {
-                    alert("森林小提示：留言内容不能为空哦~");
-                    return;
-                }
-                const oldText = btn.innerText;
-                btn.innerText = '发送中...'; btn.disabled = true;
-
-                const { data: item } = await supabaseClient.from('ForestLog').select('replies').eq('id', id).single();
-                const newReplies = [...(item.replies || []), { name, text, time: new Date().toISOString() }];
-                await supabaseClient.from('ForestLog').update({ replies: newReplies }).eq('id', id);
-                
-                fetchDiaries();
-            } catch(err) {
-                alert("回复发送失败，请重试！");
-                btn.innerText = '发送'; btn.disabled = false;
-            }
+        async function submitReply(id) {
+            const name = document.getElementById(`reply-name-${id}`).value.trim() || '匿名';
+            const text = document.getElementById(`reply-input-${id}`).value.trim();
+            if (!text) return;
+            const { data: item } = await supabaseClient.from('ForestLog').select('replies').eq('id', id).single();
+            const newReplies = [...(item.replies || []), { name, text, time: new Date().toISOString() }];
+            await supabaseClient.from('ForestLog').update({ replies: newReplies }).eq('id', id);
+            fetchDiaries();
         }
 
         async function saveReplyEdit(logId, index) {
@@ -293,25 +247,14 @@
 
         function startReplyEdit(logId, index) { replyEditingKey = `${logId}-${index}`; renderDiaries(globalDiaries); }
         function cancelReplyEdit() { replyEditingKey = null; renderDiaries(globalDiaries); }
-        
-        function startInlineEdit(id) { 
-            inlineEditingId = id; 
-            renderDiaries(globalDiaries); 
-            // 确保渲染完成后马上自适应高度
-            setTimeout(() => {
-                const el = document.getElementById(`inline-editor-${id}`);
-                if(el) autoResize(el);
-            }, 10);
-        }
+        function startInlineEdit(id) { inlineEditingId = id; renderDiaries(globalDiaries); }
         function cancelInlineEdit() { inlineEditingId = null; renderDiaries(globalDiaries); }
-        
         async function saveInlineEdit(id) { 
             const nt = document.getElementById(`inline-editor-${id}`).value.trim(); 
             const na = document.getElementById(`inline-edit-author-${id}`).value.trim();
             await supabaseClient.from('ForestLog').update({ content: nt, author: na || '匿名' }).eq('id', id); 
             inlineEditingId = null; fetchDiaries(); 
         }
-        
         function toggleReplyBox(id) { const box = document.getElementById(`reply-box-${id}`); box.style.display = (box.style.display === 'flex') ? 'none' : 'flex'; }
         
         function openConfirmModal(type, id, index = null) {
@@ -323,51 +266,30 @@
         function closeConfirmModal() { document.getElementById('customConfirm').classList.remove('show'); setTimeout(() => { document.getElementById('customConfirm').style.display = 'none'; }, 300); }
         document.getElementById('confirmYesBtn').onclick = () => confirmAction();
 
-        // 🔴 发布日志主干逻辑：兜底保护
         async function publishEntry() {
+            const content = document.getElementById('diaryInput').value.trim();
+            const author = document.getElementById('authorName').value.trim() || '匿名';
+            const isCapsule = document.getElementById('capsuleCheck').checked;
+            const unlockAt = document.getElementById('capsuleTime').value;
+            
+            if (!content && !selectedFile) return;
+            const btn = document.getElementById('publishBtn');
+            btn.innerText = '发送中...'; btn.disabled = true;
+
             try {
-                const content = document.getElementById('diaryInput').value.trim();
-                const author = document.getElementById('authorName').value.trim() || '匿名';
-                const isCapsule = document.getElementById('capsuleCheck').checked;
-                const unlockAt = document.getElementById('capsuleTime').value;
-                
-                if (!content && !selectedFile) {
-                    alert("森林小提示：写点内容或者选张图片再发布吧~");
-                    return;
-                }
-
-                const btn = document.getElementById('publishBtn');
-                btn.innerText = '发送中...'; btn.disabled = true;
-
                 let imageUrl = null;
                 if (selectedFile) {
                     const fileName = `${Date.now()}.jpg`;
-                    const { data, error } = await supabaseClient.storage.from('forest-images').upload(fileName, selectedFile);
-                    if (error) throw new Error("图片不听话: " + error.message);
+                    const { data } = await supabaseClient.storage.from('forest-images').upload(fileName, selectedFile);
                     if (data) imageUrl = supabaseClient.storage.from('forest-images').getPublicUrl(fileName).data.publicUrl;
                 }
-                
                 const payload = { content, author, mood: currentMood, is_capsule: isCapsule, image_url: imageUrl };
                 if (isCapsule && unlockAt) payload.unlock_at = new Date(unlockAt).toISOString();
-                
-                const { error: insertErr } = await supabaseClient.from('ForestLog').insert([payload]);
-                if (insertErr) throw new Error("保存数据失败: " + insertErr.message);
-
-                document.getElementById('diaryInput').value = ''; 
-                document.getElementById('diaryInput').style.height = '80px';
-                document.getElementById('imagePreview').style.display = 'none';
-                document.getElementById('capsuleCheck').checked = false;
-                document.getElementById('capsuleTime').style.display = 'none';
-                document.getElementById('fileInput').value = '';
-                selectedFile = null; 
-                
-                fetchDiaries();
-            } catch (e) { 
-                alert("不好意思，发布卡住了: " + e.message); 
-            } finally { 
-                const btn = document.getElementById('publishBtn');
-                btn.innerText = '发布日志'; btn.disabled = false; 
-            }
+                await supabaseClient.from('ForestLog').insert([payload]);
+                document.getElementById('diaryInput').value = ''; document.getElementById('imagePreview').style.display = 'none';
+                selectedFile = null; fetchDiaries();
+            } catch (e) { alert("发布失败，请检查网络"); }
+            finally { btn.innerText = '发布日志'; btn.disabled = false; }
         }
 
         function setMood(mood, btn) { currentMood = mood; document.querySelectorAll('.mood-btn').forEach(b => b.style.boxShadow = 'none'); btn.style.boxShadow = '0 0 8px white'; }
