@@ -28,7 +28,6 @@
         #musicToggle.playing { animation: pulse 2s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
 
-        /* 爱心动画 */
         #heart-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
         .heart { position: absolute; filter: drop-shadow(0 0 8px rgba(255,179,71,0.4)); animation: fall linear infinite; top: -50px; }
         @keyframes fall { 0% { transform: translateY(0) rotate(0deg) scale(0.8); opacity: 0; } 10% { opacity: 0.8; } 100% { transform: translateY(110vh) rotate(360deg) scale(1.2); opacity: 0; } }
@@ -40,19 +39,16 @@
         .forest-text { font-size: 1.4rem; color: var(--forest-dark); font-weight: bold; margin-bottom: 8px; }
         .autumn-text { font-size: 1.8rem; color: var(--autumn-gold); font-weight: bold; }
 
-        /* 发布区 */
         .input-section { width: 100%; max-width: 500px; background: var(--card-bg); padding: 15px 20px; border-radius: 20px; margin-bottom: 25px; border: 1px solid var(--card-border); z-index: 1; backdrop-filter: blur(15px); box-sizing: border-box; }
         textarea { width: 100%; background: transparent; border: none; color: white; font-size: 1.15rem; resize: none; outline: none; min-height: 80px; line-height: 1.6; box-sizing: border-box; scrollbar-width: none; }
         textarea::-webkit-scrollbar { display: none; }
 
-        /* 恢复的用户名输入框样式 */
         .author-input { background: rgba(255,255,255,0.08); border: 1px solid #444; color: #eee; border-radius: 12px; padding: 6px 12px; width: 65px; font-size: 0.9rem; outline: none; }
         
         .control-right { display: flex; align-items: center; gap: 12px; }
         .photo-btn { font-size: 1.35rem; cursor: pointer; opacity: 0.9; display: inline-flex; align-items: center; margin-top: -6px; }
         button#publishBtn { background: var(--autumn-gold); border: none; padding: 10px 22px; border-radius: 25px; cursor: pointer; font-weight: bold; color: #1c2b23; transition: 0.3s; }
 
-        /* 日志卡片 */
         #diary-list { width: 100%; max-width: 500px; z-index: 1; padding-bottom: 50px; box-sizing: border-box; }
         .diary-item { background: var(--card-bg); padding: 12px 18px !important; border-radius: 15px; margin-bottom: 15px; border: 1px solid var(--card-border); border-left: 5px solid var(--autumn-gold) !important; backdrop-filter: blur(5px); position: relative; width: 100%; box-sizing: border-box; text-align: left; }
         
@@ -60,6 +56,7 @@
         .diary-text { text-align: left !important; line-height: 1.6; white-space: pre-wrap; font-size: 1rem; word-break: break-word; color: white; margin: 0; padding: 0; }
         .diary-image { width: 100%; max-width: 350px; border-radius: 10px; margin-top: 12px; cursor: zoom-in; display: block; border: 1px solid rgba(255,255,255,0.1); }
 
+        .inline-edit-author { width: 55px; background: transparent; border: none; color: var(--autumn-gold); font-weight: bold; font-size: 0.75rem; outline: none; margin-right: 8px; padding: 0; }
         .inline-edit-area { width: 100%; background: transparent !important; border: none !important; color: white; font-size: 1rem; line-height: 1.6; outline: none; resize: none; margin-bottom: 5px; box-shadow: none !important; }
         
         .reply-edit-box { width: 100%; margin-top: 5px; }
@@ -201,6 +198,10 @@
                     return `<div class="reply-item"><div class="reply-content"><span class="reply-name">${r.name}:</span>${r.text}<span class="reply-time">${rTime}</span></div><div style="display:flex;gap:5px;"><button class="action-btn" style="font-size:0.8rem;opacity:0.4;" onclick="startReplyEdit('${item.id}', ${index})">✎</button><button class="action-btn" style="font-size:0.8rem;opacity:0.4;color:#ff5e5e;" onclick="openConfirmModal('reply', '${item.id}', ${index})">✕</button></div></div>`;
                 }).join('') + `</div>`;
 
+                const authorHtml = isEditing ? 
+                    `<input type="text" id="inline-edit-author-${item.id}" class="inline-edit-author" value="${item.author || '匿名'}">` : 
+                    `<span style="color:#ffb347; font-weight:bold; margin-right:8px;">${item.author || '匿名'}</span>`;
+
                 const contentArea = isEditing ? `
                     <textarea id="inline-editor-${item.id}" class="inline-edit-area" oninput="autoResize(this)">${item.content}</textarea>
                     <div class="edit-actions"><button class="btn-mini-cancel" onclick="cancelInlineEdit()">取消</button><button class="btn-mini-save" onclick="saveInlineEdit('${item.id}')">保存</button></div>
@@ -208,7 +209,9 @@
 
                 return `<div class="diary-item" style="border-left-color: ${moodColors[item.mood] || moodColors.gold} !important;">
                     <div class="diary-header">
-                        <div style="font-size:0.75rem; color:#8da399"><span style="color:#ffb347; font-weight:bold; margin-right:8px;">${item.author || '匿名'}</span>${new Date(item.created_at).toLocaleString()}</div>
+                        <div style="font-size:0.75rem; color:#8da399; display:flex; align-items:center;">
+                            ${authorHtml}${new Date(item.created_at).toLocaleString()}
+                        </div>
                         <div class="actions"><button class="action-btn" onclick="toggleReplyBox('${item.id}')">💬</button><button class="action-btn" onclick="startInlineEdit('${item.id}')">✎</button><button class="action-btn" onclick="openConfirmModal('log', '${item.id}')">✕</button></div>
                     </div>
                     ${contentArea}${imgHtml}${repliesHtml}
@@ -248,7 +251,18 @@
         function cancelReplyEdit() { replyEditingKey = null; renderDiaries(globalDiaries); }
         function startInlineEdit(id) { inlineEditingId = id; renderDiaries(globalDiaries); }
         function cancelInlineEdit() { inlineEditingId = null; renderDiaries(globalDiaries); }
-        async function saveInlineEdit(id) { const newText = document.getElementById(`inline-editor-${id}`).value.trim(); await supabaseClient.from('ForestLog').update({ content: newText }).eq('id', id); inlineEditingId = null; fetchDiaries(); }
+        
+        async function saveInlineEdit(id) { 
+            const newText = document.getElementById(`inline-editor-${id}`).value.trim(); 
+            const authorInput = document.getElementById(`inline-edit-author-${id}`);
+            const newAuthor = authorInput ? authorInput.value.trim() : '匿名';
+            
+            if(!newText) return;
+            await supabaseClient.from('ForestLog').update({ content: newText, author: newAuthor || '匿名' }).eq('id', id); 
+            inlineEditingId = null; 
+            fetchDiaries(); 
+        }
+        
         function toggleReplyBox(id) { const box = document.getElementById(`reply-box-${id}`); box.style.display = (box.style.display === 'flex') ? 'none' : 'flex'; }
 
         function openConfirmModal(type, id, index = null) {
@@ -268,32 +282,57 @@
         function closeConfirmModal() { document.getElementById('customConfirm').classList.remove('show'); setTimeout(() => { document.getElementById('customConfirm').style.display = 'none'; }, 300); }
         document.getElementById('confirmYesBtn').onclick = () => confirmAction();
 
+        // 🔴 核心修复：防暴毙版发布功能
         async function publishEntry() {
-            const content = document.getElementById('diaryInput').value.trim();
-            // 🔴 修复防爆机制：如果找不到名字框，默认使用'匿名'，绝不崩溃
-            const authorEl = document.getElementById('authorName');
-            const author = (authorEl ? authorEl.value.trim() : '') || '匿名';
-            const isCapsule = document.getElementById('capsuleCheck').checked;
-            const unlockAt = document.getElementById('capsuleTime').value;
-            
-            if (!content && !selectedFile) return;
-            document.getElementById('publishBtn').innerText = '发送中...'; 
-            document.getElementById('publishBtn').disabled = true;
-
             try {
+                const content = document.getElementById('diaryInput').value.trim();
+                const authorEl = document.getElementById('authorName');
+                const author = (authorEl ? authorEl.value.trim() : '') || '匿名';
+                const isCapsule = document.getElementById('capsuleCheck').checked;
+                const unlockAt = document.getElementById('capsuleTime').value;
+                
+                // 防干瞪眼提示
+                if (!content && !selectedFile) {
+                    alert("森林小提示：写点内容或者配张图再发布吧~");
+                    return;
+                }
+                
+                const publishBtn = document.getElementById('publishBtn');
+                publishBtn.innerText = '发送中...'; 
+                publishBtn.disabled = true;
+
                 let imageUrl = null;
                 if (selectedFile) {
-                    const fileName = `${Date.now()}.jpg`;
-                    const { data } = await supabaseClient.storage.from('forest-images').upload(fileName, selectedFile);
-                    if (data) imageUrl = supabaseClient.storage.from('forest-images').getPublicUrl(fileName).data.publicUrl;
+                    const fileExt = selectedFile.name.split('.').pop();
+                    const fileName = `${Date.now()}.${fileExt}`;
+                    const { data: uploadData, error: uploadError } = await supabaseClient.storage.from('forest-images').upload(fileName, selectedFile);
+                    if (uploadError) throw new Error("图片上传失败: " + uploadError.message);
+                    if (uploadData) imageUrl = supabaseClient.storage.from('forest-images').getPublicUrl(fileName).data.publicUrl;
                 }
+                
                 const payload = { content, author, mood: currentMood, is_capsule: isCapsule, image_url: imageUrl };
                 if (isCapsule && unlockAt) payload.unlock_at = new Date(unlockAt).toISOString();
-                await supabaseClient.from('ForestLog').insert([payload]);
-                document.getElementById('diaryInput').value = ''; document.getElementById('imagePreview').style.display = 'none';
-                selectedFile = null; fetchDiaries();
-            } catch (err) { alert("发布失败，请检查网络"); }
-            finally { document.getElementById('publishBtn').innerText = '发布日志'; document.getElementById('publishBtn').disabled = false; }
+                
+                const { error: insertError } = await supabaseClient.from('ForestLog').insert([payload]);
+                if (insertError) throw new Error("数据库保存失败: " + insertError.message);
+
+                document.getElementById('diaryInput').value = ''; 
+                document.getElementById('diaryInput').style.height = '80px'; 
+                document.getElementById('imagePreview').style.display = 'none';
+                document.getElementById('capsuleCheck').checked = false; 
+                document.getElementById('capsuleTime').style.display = 'none';
+                document.getElementById('fileInput').value = '';
+                selectedFile = null; 
+                
+                fetchDiaries();
+            } catch (err) { 
+                console.error(err);
+                alert("抱歉，发布出错了: " + err.message); 
+            } finally { 
+                const publishBtn = document.getElementById('publishBtn');
+                publishBtn.innerText = '发布日志'; 
+                publishBtn.disabled = false; 
+            }
         }
 
         function setMood(mood, btn) { currentMood = mood; document.querySelectorAll('.mood-btn').forEach(b => b.style.boxShadow = 'none'); btn.style.boxShadow = '0 0 8px white'; }
@@ -302,4 +341,3 @@
     </script>
 </body>
 </html>
-
