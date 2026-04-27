@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>林间的邱天</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -187,7 +190,8 @@
                 const replies = item.replies || [];
                 let repliesHtml = `<div class="replies-section">` + replies.map((r, index) => {
                     const isReplyEditing = replyEditingKey === `${item.id}-${index}`;
-                    const rTime = r.time ? new Date(r.time).toLocaleString([], {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}) : '';
+                    // 🔴 修复苹果手机可能出现的日期格式崩溃问题
+                    const rTime = r.time ? new Date(r.time).toLocaleString('zh-CN', {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}) : '';
                     if (isReplyEditing) {
                         return `<div class="reply-edit-box"><div class="reply-edit-row">
                                 <input type="text" id="re-name-${item.id}-${index}" class="reply-edit-name" value="${r.name}">
@@ -210,7 +214,7 @@
                 return `<div class="diary-item" style="border-left-color: ${moodColors[item.mood] || moodColors.gold} !important;">
                     <div class="diary-header">
                         <div style="font-size:0.75rem; color:#8da399; display:flex; align-items:center;">
-                            ${authorHtml}${new Date(item.created_at).toLocaleString()}
+                            ${authorHtml}${new Date(item.created_at).toLocaleString('zh-CN')}
                         </div>
                         <div class="actions"><button class="action-btn" onclick="toggleReplyBox('${item.id}')">💬</button><button class="action-btn" onclick="startInlineEdit('${item.id}')">✎</button><button class="action-btn" onclick="openConfirmModal('log', '${item.id}')">✕</button></div>
                     </div>
@@ -256,7 +260,6 @@
             const newText = document.getElementById(`inline-editor-${id}`).value.trim(); 
             const authorInput = document.getElementById(`inline-edit-author-${id}`);
             const newAuthor = authorInput ? authorInput.value.trim() : '匿名';
-            
             if(!newText) return;
             await supabaseClient.from('ForestLog').update({ content: newText, author: newAuthor || '匿名' }).eq('id', id); 
             inlineEditingId = null; 
@@ -282,8 +285,13 @@
         function closeConfirmModal() { document.getElementById('customConfirm').classList.remove('show'); setTimeout(() => { document.getElementById('customConfirm').style.display = 'none'; }, 300); }
         document.getElementById('confirmYesBtn').onclick = () => confirmAction();
 
-        // 🔴 核心修复：防暴毙版发布功能
+        // 🔴 稳定防爆版发布功能，带按键反馈
         async function publishEntry() {
+            const publishBtn = document.getElementById('publishBtn');
+            const originalText = publishBtn.innerText;
+            publishBtn.innerText = '请稍等...';
+            publishBtn.disabled = true;
+
             try {
                 const content = document.getElementById('diaryInput').value.trim();
                 const authorEl = document.getElementById('authorName');
@@ -291,22 +299,21 @@
                 const isCapsule = document.getElementById('capsuleCheck').checked;
                 const unlockAt = document.getElementById('capsuleTime').value;
                 
-                // 防干瞪眼提示
                 if (!content && !selectedFile) {
                     alert("森林小提示：写点内容或者配张图再发布吧~");
+                    publishBtn.innerText = originalText;
+                    publishBtn.disabled = false;
                     return;
                 }
-                
-                const publishBtn = document.getElementById('publishBtn');
+
                 publishBtn.innerText = '发送中...'; 
-                publishBtn.disabled = true;
 
                 let imageUrl = null;
                 if (selectedFile) {
                     const fileExt = selectedFile.name.split('.').pop();
                     const fileName = `${Date.now()}.${fileExt}`;
                     const { data: uploadData, error: uploadError } = await supabaseClient.storage.from('forest-images').upload(fileName, selectedFile);
-                    if (uploadError) throw new Error("图片上传失败: " + uploadError.message);
+                    if (uploadError) throw new Error("图片传失败了: " + uploadError.message);
                     if (uploadData) imageUrl = supabaseClient.storage.from('forest-images').getPublicUrl(fileName).data.publicUrl;
                 }
                 
@@ -314,7 +321,7 @@
                 if (isCapsule && unlockAt) payload.unlock_at = new Date(unlockAt).toISOString();
                 
                 const { error: insertError } = await supabaseClient.from('ForestLog').insert([payload]);
-                if (insertError) throw new Error("数据库保存失败: " + insertError.message);
+                if (insertError) throw new Error("数据库有点开小差: " + insertError.message);
 
                 document.getElementById('diaryInput').value = ''; 
                 document.getElementById('diaryInput').style.height = '80px'; 
@@ -326,10 +333,8 @@
                 
                 fetchDiaries();
             } catch (err) { 
-                console.error(err);
-                alert("抱歉，发布出错了: " + err.message); 
+                alert("抱歉，发布遇到了小问题: " + err.message); 
             } finally { 
-                const publishBtn = document.getElementById('publishBtn');
                 publishBtn.innerText = '发布日志'; 
                 publishBtn.disabled = false; 
             }
